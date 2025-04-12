@@ -12,6 +12,7 @@ find_package(std_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(serial_cpp REQUIRED)
+find_package(waverover_helpers REQUIRED)
 
 include_directories(
   include
@@ -24,7 +25,7 @@ add_executable(waverover_controller src/waverover_controller_node.cpp
 
 target_link_libraries(waverover_controller serial_cpp::serial_cpp)
 
-ament_target_dependencies(waverover_controller rclcpp std_msgs geometry_msgs sensor_msgs serial_cpp)
+ament_target_dependencies(waverover_controller rclcpp std_msgs geometry_msgs sensor_msgs serial_cpp waverover_helpers)
 
 install(TARGETS
   waverover_controller

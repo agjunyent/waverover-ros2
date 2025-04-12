@@ -5,12 +5,12 @@
 WaveRoverController::WaveRoverController(const rclcpp::Node::SharedPtr& node) :
     node(node)
 {
-    port_name = WaveRoverHelpers::setAndGetParameter<std::string>(node, "port_name");
-    baud_rate = WaveRoverHelpers::setAndGetParameter<int>(node, "baud_rate");
-    update_data_period_ms = WaveRoverHelpers::setAndGetParameter<int>(node, "update_data_period_ms");
-    get_wheels_speed_period_ms = WaveRoverHelpers::setAndGetParameter<int>(node, "get_wheels_speed_period_ms");
+    port_name = waverover_helpers::setAndGetParameter<std::string>(node, "port_name");
+    baud_rate = waverover_helpers::setAndGetParameter<int>(node, "baud_rate");
+    update_data_period_ms = waverover_helpers::setAndGetParameter<int>(node, "update_data_period_ms");
+    get_wheels_speed_period_ms = waverover_helpers::setAndGetParameter<int>(node, "get_wheels_speed_period_ms");
 
-    pid_map = WaveRoverHelpers::setAndGetParameters<int>(node, "pid", pid_map);
+    pid_map = waverover_helpers::setAndGetParameters<int>(node, "pid", pid_map);
 
     serial_port = std::make_unique<UARTSerialPort>(port_name, baud_rate);
     if (!serial_port->isOpen())
