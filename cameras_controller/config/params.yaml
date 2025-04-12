@@ -1,0 +1,6 @@
+cameras_controller:
+  ros__parameters:
+    port_or_ip: "/dev/video0"
+    fps: 30
+    resolution: [1920, 1080, 3]
+    restart_camera_no_frames: 10.0
