@@ -1,9 +1,10 @@
 waverover_controller:
   ros__parameters:
-    port_name: "/dev/ttyUSB0"
+    port_name: "/dev/waverover"
     baud_rate: 115200
-    update_data_period_ms: 100
-    get_wheels_speed_period_ms: 10
+    update_data_period_ms: 50
+    get_wheels_speed_period_ms: 25
+    publish_odometry_period_ms: 50
     pid:
       P: 200
       I: 700

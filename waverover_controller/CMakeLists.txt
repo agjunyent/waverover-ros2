@@ -10,8 +10,12 @@ endif()
 # find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
+find_package(tf2 REQUIRED)
+find_package(tf2_ros REQUIRED)
+find_package(tf2_geometry_msgs REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
+find_package(nav_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(serial_cpp REQUIRED)
 find_package(waverover_helpers REQUIRED)
@@ -27,7 +31,7 @@ add_executable(waverover_controller src/waverover_controller_node.cpp
 
 target_link_libraries(waverover_controller serial_cpp::serial_cpp)
 
-ament_target_dependencies(waverover_controller rclcpp std_msgs geometry_msgs sensor_msgs serial_cpp waverover_helpers)
+ament_target_dependencies(waverover_controller rclcpp tf2 tf2_ros tf2_geometry_msgs std_msgs geometry_msgs sensor_msgs nav_msgs serial_cpp waverover_helpers)
 
 install(TARGETS
   waverover_controller
