@@ -5,7 +5,7 @@
   <xacro:include filename="$(find waverover_description)/urdf/util.xacro" />
   <xacro:include filename="$(find waverover_description)/urdf/waverover.trans.xacro" />
   <xacro:include filename="$(find waverover_description)/urdf/waverover.gazebo.xacro" />
-  <!-- <xacro:include filename="$(find waverover_description)/urdf/lidar.xacro" /> -->
+  <xacro:include filename="$(find waverover_description)/urdf/lidar.xacro" />
   <xacro:include filename="$(find waverover_description)/urdf/imu.xacro" />
 
   <!-- ******************************* Links ******************************* -->
