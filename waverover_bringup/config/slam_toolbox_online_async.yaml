@@ -1,0 +1,37 @@
+slam_toolbox:
+  ros__parameters:
+    use_sim_time: false
+
+    # Frame configuration
+    odom_frame: odom
+    base_frame: base_link
+    map_frame: map
+    scan_topic: /scan
+    laser_frame: lidar_link
+    odom_topic: /odometry/filtered
+  
+    # SLAM mode settings
+    mode: mapping
+    slam_mode: true
+
+    # Map resolution and update frequency
+    resolution: 0.05
+    map_update_interval: 2.0
+
+    # Scan matcher settings
+    use_scan_matching: true
+    minimum_time_interval: 0.5
+    transform_timeout: 0.3
+    map_publish_period: 1.0
+
+    # Loop closure and optimization
+    use_loop_closing: true
+    use_pose_graph: true
+    use_scan_barycenter: false
+    loop_match_method: "cca_scan_matcher"
+    loop_search_max_dist: 3.0
+
+    # Sensor limits
+    range_threshold: 30.0
+    minimum_travel_distance: 0.2
+    minimum_travel_heading: 0.2
