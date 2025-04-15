@@ -29,6 +29,16 @@ def generate_launch_description():
         ),
     )
 
+    cameras_controller_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            os.path.join(
+                get_package_share_directory('cameras_controller'),
+                'launch',
+                'cameras_controller_launch.py'
+            )
+        ),
+    )
+
     waverover_description_launch = IncludeLaunchDescription(
         XMLLaunchDescriptionSource(
             os.path.join(
@@ -62,9 +72,10 @@ def generate_launch_description():
         )
 
     return LaunchDescription([
-        waverover_controller_launch,
-        sllidar_launch,
-        waverover_description_launch,
-        slam_toolbox_launch,
-        robot_localization_node
+        # waverover_controller_launch,
+        # sllidar_launch,
+        cameras_controller_launch
+        # waverover_description_launch,
+        # slam_toolbox_launch,
+        # robot_localization_node
     ])
