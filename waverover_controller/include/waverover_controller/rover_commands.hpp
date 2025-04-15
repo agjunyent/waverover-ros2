@@ -12,6 +12,7 @@ enum class WAVE_ROVER_COMMAND_TYPE {
 
     BATTERY_INFO=44,
     IMU_INFO=126,
+    IMU_ODOM_INFO=7,
 
     BUS_SERVO_MID=-5,
     PWM_SERVO_MID=-4,
@@ -110,5 +111,7 @@ inline std::ostream& operator<<(std::ostream& os, WAVE_ROVER_COMMAND_TYPE comman
         return os << "ROS_CTRL";
     case WAVE_ROVER_COMMAND_TYPE::WHEELS_SPEED:
         return os << "WHEELS_SPEED";
+    case WAVE_ROVER_COMMAND_TYPE::IMU_ODOM_INFO:
+        return os << "IMU_ODOM_INFO";
     }
 }
