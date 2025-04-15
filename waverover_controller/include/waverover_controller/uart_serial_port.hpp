@@ -6,7 +6,6 @@
 #include <chrono>
 #include <vector>
 #include <memory>
-#include <mutex>
 #include <iostream>
 
 class UARTSerialPort {
@@ -30,8 +29,6 @@ public:
 private:
     std::unique_ptr<serial_cpp::Serial> _serial;
     std::vector<uint8_t> _response;
-
-    std::mutex _serial_mutex;
 
     const int _receiveTimeout = 10000; // milliseconds
     const int _writeTimeout = 10000;   // milliseconds

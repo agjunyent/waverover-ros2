@@ -36,7 +36,6 @@ void UARTSerialPort::listAllPorts()
 
 void UARTSerialPort::sendRequestSync(const std::string& text)
 {
-    std::lock_guard<std::mutex> lock(_serial_mutex);
     if (!isAvailable()) {
         std::cerr << "Serial Port is down!" << std::endl;
         return;
@@ -48,7 +47,6 @@ void UARTSerialPort::sendRequestSync(const std::string& text)
 
 bool UARTSerialPort::getResponseSync(const std::string& command, std::string& response)
 {
-    std::lock_guard<std::mutex> lock(_serial_mutex);
     if (!isAvailable()) {
         std::cerr << "Serial Port is down!" << std::endl;
         return false;
@@ -69,14 +67,12 @@ bool UARTSerialPort::getResponseSync(const std::string& command, std::string& re
 
 bool UARTSerialPort::sendRequestSync(const std::vector<uint8_t>& data)
 {
-    std::lock_guard<std::mutex> lock(_serial_mutex);
     _serial->write(data);
     return true;
 }
 
 bool UARTSerialPort::readResponse()
 {
-    std::lock_guard<std::mutex> lock(_serial_mutex);
     std::string data = _serial->read(1024);
     _response.insert(_response.end(), data.begin(), data.end());
     return false;
