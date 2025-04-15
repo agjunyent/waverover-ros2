@@ -17,7 +17,6 @@ def generate_launch_description():
                 'waverover_controller.launch.py'
             )
         ),
-        launch_arguments={'namespace': 'waverover'}.items()
     )
 
     sllidar_launch = IncludeLaunchDescription(
@@ -28,7 +27,6 @@ def generate_launch_description():
                 'sllidar_a1_launch.py'
             )
         ),
-        launch_arguments={'namespace': 'waverover'}.items()
     )
 
     waverover_description_launch = IncludeLaunchDescription(
@@ -39,7 +37,6 @@ def generate_launch_description():
                 'description.launch.xml'
             )
         ),
-        launch_arguments={'namespace': 'waverover'}.items()
     )
 
     slam_toolbox_launch = IncludeLaunchDescription(
@@ -50,8 +47,7 @@ def generate_launch_description():
                 'online_async_launch.py'
             )
         ),
-        launch_arguments={'namespace': 'waverover',
-                          'params_file': os.path.join(get_package_share_directory('waverover_bringup'), 'config', 'slam_toolbox_online_async.yaml')
+        launch_arguments={'params_file': os.path.join(get_package_share_directory('waverover_bringup'), 'config', 'slam_toolbox_online_async.yaml')
                           }.items()
     )
 
