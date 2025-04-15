@@ -8,7 +8,11 @@ int main(int argc, char **argv)
 {
     rclcpp::init(argc, argv);
 
-    std::shared_ptr<rclcpp::Node> node = rclcpp::Node::make_shared("cameras_controller");
+    rclcpp::NodeOptions options;
+    // options.allow_undeclared_parameters(true);
+    // options.automatically_declare_parameters_from_overrides(true);
+
+    std::shared_ptr<rclcpp::Node> node = rclcpp::Node::make_shared("cameras_controller", options);
 
     CamerasController cameras_controller(node);
 

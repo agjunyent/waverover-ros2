@@ -45,6 +45,7 @@ set(HEADER_FILES
   include/cameras_controller/cameras_controller.hpp
   src/camera.cpp
   src/camera_rgb.cpp
+  src/camera_thm.cpp
   src/cameras_controller.cpp)
 
 add_executable(cameras_controller_node src/cameras_controller_node.cpp

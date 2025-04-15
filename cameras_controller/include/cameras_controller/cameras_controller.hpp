@@ -9,6 +9,7 @@
 
 #include "waverover_helpers/helpers.hpp"
 #include "cameras_controller/camera_rgb.hpp"
+#include "cameras_controller/camera_thm.hpp"
 
 using namespace std::chrono_literals;
 using std::placeholders::_1;
@@ -20,11 +21,11 @@ public:
     CamerasController(const rclcpp::Node::SharedPtr& node);
     ~CamerasController();
 
-    void attachCamera(const std::string& port_or_ip, const int fps, const std::array<int, 3> resolution);
+    void attachCamera(const std::string& camera_type, const std::string& port_or_ip, const int fps, const std::array<int, 3> resolution);
 
 private:
     const rclcpp::Node::SharedPtr& node;
-    
+
     std::vector<std::unique_ptr<Camera>> cameras;
 
     std::string port_or_ip;
