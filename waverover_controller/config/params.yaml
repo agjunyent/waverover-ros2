@@ -1,12 +1,19 @@
 waverover_controller:
   ros__parameters:
     port_name: "/dev/waverover"
-    baud_rate: 115200
-    update_data_period_ms: 50
-    get_wheels_speed_period_ms: 25
+    baud_rate: 460800
+    update_imu_period_ms: 10
+    update_battery_period_ms: 1000
     publish_odometry_period_ms: 50
     pid:
       P: 200
       I: 700
       D: 0
       L: 255
+    imu_offsets:
+      ax: 0.495492927
+      ay: 0.05175489400000001
+      az: -0.05667022600000138
+      gx: 0.112315239
+      gy: -0.011351108
+      gz: -0.06337622
