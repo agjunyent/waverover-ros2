@@ -7,11 +7,12 @@ WaveRoverController::WaveRoverController(const rclcpp::Node::SharedPtr& node) :
 {
     port_name = waverover_helpers::setAndGetParameter<std::string>(node, "port_name");
     baud_rate = waverover_helpers::setAndGetParameter<int>(node, "baud_rate");
-    update_data_period_ms = waverover_helpers::setAndGetParameter<int>(node, "update_data_period_ms");
-    get_wheels_speed_period_ms = waverover_helpers::setAndGetParameter<int>(node, "get_wheels_speed_period_ms");
+    update_imu_period_ms = waverover_helpers::setAndGetParameter<int>(node, "update_imu_period_ms");
+    update_battery_period_ms = waverover_helpers::setAndGetParameter<int>(node, "update_battery_period_ms");
     publish_odometry_period_ms = waverover_helpers::setAndGetParameter<int>(node, "publish_odometry_period_ms");
 
     pid_map = waverover_helpers::setAndGetParameters<int>(node, "pid", pid_map);
+    imu_offsets = waverover_helpers::setAndGetParameters<double>(node, "imu_offsets", imu_offsets);
 
     serial_port = std::make_unique<UARTSerialPort>(port_name, baud_rate);
     if (!serial_port->isOpen())
@@ -31,20 +32,24 @@ WaveRoverController::WaveRoverController(const rclcpp::Node::SharedPtr& node) :
 
     battery_publisher = node->create_publisher<sensor_msgs::msg::BatteryState>("/battery_state", 10);
 
-    update_data_timer = node->create_wall_timer(std::chrono::milliseconds(update_data_period_ms), std::bind(&WaveRoverController::updateData, this));
-    get_wheels_speed_timer = node->create_wall_timer(std::chrono::milliseconds(get_wheels_speed_period_ms), std::bind(&WaveRoverController::getWheelsSpeed, this));
     publish_odom_timer = node->create_wall_timer(std::chrono::milliseconds(publish_odometry_period_ms), std::bind(&WaveRoverController::publishOdometryData, this));
+    update_battery_timer = node->create_wall_timer(std::chrono::milliseconds(update_battery_period_ms), std::bind(&WaveRoverController::updateBatteryData, this));
+    update_imu_timer = node->create_wall_timer(std::chrono::milliseconds(update_imu_period_ms), std::bind(&WaveRoverController::updateImuData, this));
 }
 
 WaveRoverController::~WaveRoverController()
 {
-    update_data_timer->cancel();
+    update_battery_timer->cancel();
+    update_imu_timer->cancel();
+    publish_odom_timer->cancel();
 }
 
 void WaveRoverController::cmdVelCallback(const geometry_msgs::msg::Twist::SharedPtr msg)
 {
     // Convert the Twist message to a string command
     std::string command = WaveRoverController::twistToCommand(msg);
+
+    std::cout << "Command: " << command << std::endl;
 
     // Send the command to the serial port
     serial_port->sendRequestSync(command);
@@ -75,15 +80,20 @@ void WaveRoverController::getWheelsSpeed()
     message_json["T"] = WAVE_ROVER_COMMAND_TYPE::WHEELS_SPEED;
     serial_port->getResponseSync(message_json.dump(), wheels_speed_data);
     nlohmann::json wheels_speed_json = nlohmann::json::parse(wheels_speed_data);
-    left_wheel_speed_cm_s = wheels_speed_json["L"];
-    right_wheel_speed_cm_s = wheels_speed_json["R"];
-    // std::cout << "Left wheel speed: " << left_wheel_speed_cm_s << ", Right wheel speed: " << right_wheel_speed_cm_s << std::endl;
+    left_wheel_speed = wheels_speed_json["L"];
+    right_wheel_speed = wheels_speed_json["R"];
 }
 
 void WaveRoverController::publishOdometryData()
 {
-    double v_l = left_wheel_speed_cm_s / 100.0;  // Convert to m/s
-    double v_r = right_wheel_speed_cm_s / 100.0;
+    static auto odom_msg = nav_msgs::msg::Odometry();
+    static geometry_msgs::msg::TransformStamped tf_msg;
+    static tf2::Quaternion q;
+
+    getWheelsSpeed();
+
+    double v_l = left_wheel_speed;
+    double v_r = right_wheel_speed;
 
     double v = (v_r + v_l) / 2.0;
     double omega = (v_r - v_l) / 0.125;  // rad/s
@@ -102,7 +112,6 @@ void WaveRoverController::publishOdometryData()
     theta_int += delta_theta;
 
     // Publish odometry message
-    auto odom_msg = nav_msgs::msg::Odometry();
     odom_msg.header.stamp = now;
     odom_msg.header.frame_id = "odom";
     odom_msg.child_frame_id = "base_footprint";
@@ -111,7 +120,6 @@ void WaveRoverController::publishOdometryData()
     odom_msg.pose.pose.position.y = y_int;
     odom_msg.pose.pose.position.z = 0.0;
 
-    tf2::Quaternion q;
     q.setRPY(0, 0, theta_int);
     odom_msg.pose.pose.orientation = tf2::toMsg(q);
 
@@ -121,7 +129,6 @@ void WaveRoverController::publishOdometryData()
     odom_publisher->publish(odom_msg);
 
     // Broadcast the transform
-    geometry_msgs::msg::TransformStamped tf_msg;
     tf_msg.header.stamp = now;
     tf_msg.header.frame_id = "odom";
     tf_msg.child_frame_id = "base_footprint";
@@ -133,26 +140,30 @@ void WaveRoverController::publishOdometryData()
     tf_broadcaster->sendTransform(tf_msg);
 }
 
-void WaveRoverController::updateData()
+void WaveRoverController::updateImuData()
 {
     std::string imu_data = getImuData();
-    std::string battery_data = getBatteryData();
     nlohmann::json imu_json = nlohmann::json::parse(imu_data);
-    nlohmann::json battery_json = nlohmann::json::parse(battery_data);
 
     // Publish the IMU data
     auto imu_msg = sensor_msgs::msg::Imu();
     imu_msg.header.stamp = node->now();
-    imu_msg.linear_acceleration.x = static_cast<double>(imu_json["ax"]) / 100.0;
-    imu_msg.linear_acceleration.y = static_cast<double>(imu_json["ay"]) / 100.0;
-    imu_msg.linear_acceleration.z = static_cast<double>(imu_json["az"]) / 100.0;
-    imu_msg.angular_velocity.x = static_cast<double>(imu_json["gx"]) * M_PI / 180.0; // Convert to rad/s
-    imu_msg.angular_velocity.y = static_cast<double>(imu_json["gy"]) * M_PI / 180.0; // Convert to rad/s
-    imu_msg.angular_velocity.z = static_cast<double>(imu_json["gz"]) * M_PI / 180.0; // Convert to rad/s
+    imu_msg.linear_acceleration.x = static_cast<double>(imu_json["ax"]) - imu_offsets["ax"];
+    imu_msg.linear_acceleration.y = static_cast<double>(imu_json["ay"]) - imu_offsets["ay"];
+    imu_msg.linear_acceleration.z = static_cast<double>(imu_json["az"]) - imu_offsets["az"];
+    imu_msg.angular_velocity.x = static_cast<double>(imu_json["gx"]) - imu_offsets["gx"];
+    imu_msg.angular_velocity.y = static_cast<double>(imu_json["gy"]) - imu_offsets["gy"];
+    imu_msg.angular_velocity.z = static_cast<double>(imu_json["gz"]) - imu_offsets["gz"];
     tf2::Quaternion q;
     q.setRPY(0, 0, imu_json["y"]);
     imu_msg.orientation = tf2::toMsg(q);
     imu_publisher->publish(imu_msg);
+}
+
+void WaveRoverController::updateBatteryData()
+{
+    std::string battery_data = getBatteryData();
+    nlohmann::json battery_json = nlohmann::json::parse(battery_data);
 
     // Publish the battery data
     auto battery_msg = sensor_msgs::msg::BatteryState();

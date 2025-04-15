@@ -26,6 +26,7 @@ public:
 
 private:
     const rclcpp::Node::SharedPtr& node;
+    std::shared_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster;
 
     rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr cmd_vel_subscriber;
 
@@ -37,30 +38,37 @@ private:
     std::string port_name;
     int baud_rate;
 
-    int update_data_period_ms;
-
     void cmdVelCallback(const geometry_msgs::msg::Twist::SharedPtr msg);
 
     std::string getImuData();
     std::string getBatteryData();
     
-    int get_wheels_speed_period_ms = 10;
-    int publish_odometry_period_ms = 10;
-    float left_wheel_speed_cm_s = 0;
-    float right_wheel_speed_cm_s = 0;
-    rclcpp::TimerBase::SharedPtr get_wheels_speed_timer;
+    int publish_odometry_period_ms = 50;
+    float left_wheel_speed = 0;
+    float right_wheel_speed = 0;
     void getWheelsSpeed();
 
     double x_int, y_int, theta_int;
     rclcpp::Time last_time_odom = node->now();
-
-    std::shared_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster;
     rclcpp::TimerBase::SharedPtr publish_odom_timer;
-
     void publishOdometryData();
 
-    rclcpp::TimerBase::SharedPtr update_data_timer;
-    void updateData();
+    int update_battery_period_ms = 500;
+    rclcpp::TimerBase::SharedPtr update_battery_timer;
+    void updateBatteryData();
+
+    int update_imu_period_ms = 10;
+    rclcpp::TimerBase::SharedPtr update_imu_timer;
+    void updateImuData();
+
+    std::map<std::string, double> imu_offsets = {
+        {"ax", 0.0},
+        {"ay", 0.0},
+        {"az", 0.0},
+        {"gx", 0.0},
+        {"gy", 0.0},
+        {"gz", 0.0}
+    };
 
     std::map<std::string, int> pid_map = {
         {"P", 0},
