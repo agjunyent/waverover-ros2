@@ -15,7 +15,7 @@
   <depend>tf2_geometry_msgs</depend>
   <depend>std_msgs</depend>
   <depend>geometry_msgs</depend>
-  <depend>sensor_msgsd</depend>
+  <depend>sensor_msgs</depend>
   <depend>nav_msgs</depend>
   <depend>waverover_helpers</depend>
 
