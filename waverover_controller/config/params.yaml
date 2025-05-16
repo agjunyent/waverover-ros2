@@ -1,8 +1,10 @@
 waverover_controller:
   ros__parameters:
-    port_name: "/dev/waverover"
+    # port_name: "/dev/waverover"
+    # port_name: "/dev/serial0"
+    port_name: "/dev/ttyAMA0"
     baud_rate: 460800
-    update_imu_period_ms: 10
+    update_imu_period_ms: 20
     update_battery_period_ms: 1000
     publish_odometry_period_ms: 50
     pid:

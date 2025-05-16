@@ -25,7 +25,10 @@ WaveRoverController::WaveRoverController(const rclcpp::Node::SharedPtr& node) :
 
     tf_broadcaster = std::make_shared<tf2_ros::TransformBroadcaster>(node);
 
-    cmd_vel_subscriber = node->create_subscription<geometry_msgs::msg::Twist>("/cmd_vel", 10, std::bind(&WaveRoverController::cmdVelCallback, this, std::placeholders::_1));
+    rclcpp::SubscriptionOptions options;
+    auto cmd_vel_cb_group = node->create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
+    options.callback_group = cmd_vel_cb_group;
+    cmd_vel_subscriber = node->create_subscription<geometry_msgs::msg::Twist>("/cmd_vel", 10, std::bind(&WaveRoverController::cmdVelCallback, this, std::placeholders::_1), options);
 
     odom_publisher = node->create_publisher<nav_msgs::msg::Odometry>("/odom", 10);
     imu_publisher = node->create_publisher<sensor_msgs::msg::Imu>("/imu", 10);
@@ -79,7 +82,14 @@ void WaveRoverController::getWheelsSpeed()
     nlohmann::json message_json = {};
     message_json["T"] = WAVE_ROVER_COMMAND_TYPE::WHEELS_SPEED;
     serial_port->getResponseSync(message_json.dump(), wheels_speed_data);
-    nlohmann::json wheels_speed_json = nlohmann::json::parse(wheels_speed_data);
+
+    nlohmann::json wheels_speed_json = nlohmann::json::parse(wheels_speed_data, nullptr, true);
+    if (wheels_speed_json.is_discarded())
+    {
+        RCLCPP_ERROR_STREAM(node->get_logger(), "Failed to parse wheels speed data: " << wheels_speed_data);
+        return;
+    }
+
     left_wheel_speed = wheels_speed_json["L"];
     right_wheel_speed = wheels_speed_json["R"];
 }
@@ -143,7 +153,12 @@ void WaveRoverController::publishOdometryData()
 void WaveRoverController::updateImuData()
 {
     std::string imu_data = getImuData();
-    nlohmann::json imu_json = nlohmann::json::parse(imu_data);
+    nlohmann::json imu_json = nlohmann::json::parse(imu_data, nullptr, true);
+    if (imu_json.is_discarded())
+    {
+        RCLCPP_ERROR_STREAM(node->get_logger(), "Failed to parse IMU data: " << imu_data);
+        return;
+    }
 
     // Publish the IMU data
     auto imu_msg = sensor_msgs::msg::Imu();
@@ -163,7 +178,12 @@ void WaveRoverController::updateImuData()
 void WaveRoverController::updateBatteryData()
 {
     std::string battery_data = getBatteryData();
-    nlohmann::json battery_json = nlohmann::json::parse(battery_data);
+    nlohmann::json battery_json = nlohmann::json::parse(battery_data, nullptr, true);
+    if (battery_json.is_discarded())
+    {
+        RCLCPP_ERROR_STREAM(node->get_logger(), "Failed to parse battery data: " << battery_data);
+        return;
+    }
 
     // Publish the battery data
     auto battery_msg = sensor_msgs::msg::BatteryState();
